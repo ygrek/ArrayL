@@ -3,12 +3,12 @@
 #use "intro2021.ml";;
 *)
 
-(* 入門 *)
+(* getting started *)
 
-(* arrayとは *)
+(*what is an array*)
 
 (*
-内容と形
+content and shape
 1 2 3 4 5 6
 
 1 2 3
@@ -18,73 +18,72 @@
 3 4
 5 6
 
-具体的に、形とは？
+Specifically, what is shape?
 1 2 3 4 5 6
- a_0 = 1
- a_1 = 2
- ...
- a_5 = 6
-それは、[0..5] -> [1..6]関数だね
-そんな関数は、arrayの意味して、arrayを表現している
-(因みに、Fortranでは、関数の呼出しとarrayから要素をとるのは、同じ表記だ: A(I))
+  a_0 = 1
+  a_1 = 2
+  ...
+  a_5 = 6
+It's a [0..5] -> [1..6] function
+Such a function expresses an array in the sense of a mapping
+(By the way, in Fortran, calling a function and taking an element from an array have the same notation: A(I))
 
 
-[0..5](関数の定義域:domain)は、 形を表す
-関数のrangeは、arrayの内容域
+[0..5] domain of function represents the shape
+The range of the function is the content of the array
 
 0 0 0 0 0 0
-ならば、
-それは、[0..5] -> 0関数で表現するね
-[0..5]部分は(domain,形)前と同じけど、内容(range)が違う
+It is expressed by the [0..5] -> 0 function.
+The [0..5] part is the same as before (domain, shape), but the content (range) is different
 
 1 2 3
 4 5 6
-場合は、
+If
 a_00 = 1, a_01 = 2, ...
-[0..1] x [0..2] -> [1..6]の関数
-domainが違ったが、rangeが同じ
+A function of [0..1] x [0..2] -> [1..6]
+Different domain but same range
 
 1 2
 3 4
 5 6
-場合は？
+if?
 
-それは、[0..5] -> int
-のような関数は、直接にOCaml上であんまり表現できないけど、間接にできる
+It is [0..5] -> int
+A function like above cannot be expressed directly in OCaml, but can be indirectly expressed as
 *)
 
 type ('i,'a) arr = Arr of 'i * ('i -> 'a)
 
 (*
 Arr (upb,indexf)
-   upb: 最大index
-   最小indexは明示的に指定しない (0の様に)
+upb: maximum index
+    No minimum index specified explicitly (like 0)
 
-  だから、空arrayは存在しない
+   So there is no empty array
  *)
 
 (*
-最後に、scalarは、そのように表現できる？
+Finally, can scalar be expressed as such?
 *)
 
 (* <hide> *)
-(* scalarはrank=0のarrayである *)
+(* scalar is an array with rank=0 *)
 
 let one : (unit,int) arr = Arr ((),fun _ -> 1)
 (* </hide> *)
 (*
-scalarは、vectorの一種 (APLにとって)
-でも、代数なで、scalarとvectorが全く別のもの
-我々も、scalarとvectorを区別しよう
+scalar is a kind of vector (for APL)
+But in algebra, scalar and vector are completely different things
+We also distinguish between scalar and vector
 *)
 
 
-(* vector: rank=1のarray *)
+(* vector: array with rank=1 *)
 
-type d1 = int                     (* 本来、自然数 *)
+type d1 = int (* originally a natural number *)
 
-(* 表示しよう *)
-(* 以下は、今のところ、飛しょう *)
+(* Show it *)
+(* The following is for now, let's fly *)
 
 let pr_arr1gen : (bool -> unit) -> ('a -> unit) -> (d1,'a) arr -> unit =
   fun pr_border pr_el  -> function Arr (upb,xf) ->
@@ -147,26 +146,25 @@ let _ = a1 |> rev |> rev |> pr_arr1
 (*/hide*)
 
 
-(* 2*v しよう *)
+(*Let's 2*v*)
 (*hide*)
-(* 数学的な式を考えよう: y_i = 2*x_i
-   OCaml表記は、数学表記と近い
- *)
+(* Consider a mathematical formula: y_i = 2*x_i
+    OCaml notation is close to mathematical notation *)
 let mul1 : int -> (d1,int) arr -> (d1,int) arr
     = fun n -> function Arr (upb,a) ->
       Arr(upb, fun i -> n * (a i))
 
-(* 数学での合成。知ってる？ *)
-(* 左から右まで合成 *)
+(* Composition in mathematics. Do you know it? *)
+(* composite from left to right *)
 let (>>) f g = fun x -> f x |> g
 
-(* |>と>>の関係？
+(* Relation between |> and >>?
 
 x |> f |> g === x |> (f >> g)
-数学での合成と比べて
+compared to composition in mathematics
 *)
 
-(* まえのcurryingについての話 *)
+(* Talking about currying before *)
 let mul1 : int -> (d1,int) arr -> (d1,int) arr
     = fun n -> function Arr (upb,a) ->
       Arr(upb, a >> ( * ) n)
@@ -193,12 +191,12 @@ let map1 : ('a -> 'b) -> (d1,'a) arr -> (d1,'b) arr
     = fun f -> function Arr (upb,a) ->
       Arr(upb, a >> f)
 (*/hide*)
-(* a >> fの意味: fはaのrangeを変換する  fはaのrangeに適用する
-array本体での処理のヒント
+(* a >> f means: f transforms the range of a; f applies to the range of a
+Processing hints in the array body
 *)
 
 (* 2*v+1
-   僕等の演算順序 対 APLの順序
+    Our Operation Order vs. APL Order
  *)
 (*hide*)
 let _ = pr_arr1 a1
@@ -211,12 +209,12 @@ let _ = a1 |> map1 ( ( * ) 2 >> (+) 1) |> pr_arr1
 (*
 map1 f >> map1 g ===
 map1 (f >> g)
-意味が同じ、効率が少し高める
+Same meaning, slightly more efficient
 
-symbolのいじる話
-map1のような規則を(目が閉まったままさえ)適用すると、必ず正しい結果が出る
-(意味保存)。
-Algebra上での変換
+The story of symbol
+Applying a rule like map1 (even with your eyes closed) always gives the correct result
+(semantic preservation).
+It is an algebraic transformation
 *)
 (*/hide*)
 
@@ -224,7 +222,7 @@ let iota : int -> (d1,int) arr = fun n ->
   assert (n>0);
   Arr(n-1,fun i -> i)
 
-(* idは本当に基本だよ *)
+(* id is really basic *)
 let iota : int -> (d1,int) arr = fun n ->
   assert (n>0);
   Arr(n-1,Fun.id)
@@ -239,21 +237,21 @@ let _ = iota 5 |> map1 (( * ) 2) |> rev |> pr_arr1
 
 
 (*
-a1では、内容はメモリに保存した。iotaは？
-iota 5でも、iota 5000000でも、メモリ量が同じよ。
+In a1, the contents were saved in memory. iota?
+Both iota 5 and iota 5000000 have the same amount of memory.
 
-Unixでは、/dev/zero, /dev/randomなど
+On Unix, /dev/zero, /dev/random, etc.
 
-OSとPL(APL)は、とても別の世界なのに見えるけど。
-原理/理念を理解するのは、何より。
+Although OS and PL (APL) seem to be very different worlds.
+Above all, it is important to understand the principles/philosophies.
 *)
 
 (* x+y *)
 (*hide*)
-(* 対応: 0 -> a_0 + b_0
-         1 -> a_1 + b_1
-         ...
-一般化？ それを文字通りに実装
+(* Correspondence: 0 -> a_0 + b_0
+                   1 -> a_1 + b_1
+                   ...
+Generalization? implement it literally
  *)
 let add2 : (d1,int) arr -> (d1,int) arr -> (d1,int) arr
     = fun (Arr (upbx,xf)) (Arr (upby,yf)) ->
@@ -261,37 +259,48 @@ let add2 : (d1,int) arr -> (d1,int) arr -> (d1,int) arr
       Arr(upbx, fun i -> (xf i + yf i))
 (*/hide*)
 
-(* そのままいいけど、そんな形の式は、よく起るよ。
-APLでは、forkと喚ばれる
-APLが提供する; OCamlで、自分で定義できるよ
-APLでは、hookとforkが、大事なので、空白で表現する
+(* It's fine as it is, but expressions of that form often occur.
+In APL it is called fork
+APL provides; OCaml, you can define your own
+In APL, hook and fork are important, so they are expressed with spaces.
 *)
 
-(* 有名なS combinator *)
-(* `combinator'って、引数を並び換え、合成 *)
+(*famous S combinator*)
+
+(* wikipedia
+I returns its argument:
+
+Ix = x
+K, when applied to any argument x, yields a one-argument constant function Kx, which, when applied to any argument, returns x:
+
+Kxy = x
+S is a substitution operator. It takes three arguments and then returns the first argument applied to the third, which is then applied to the result of the second argument applied to the third. More clearly:
+
+Sxyz = xz(yz)
+*)
+
+(* `combinator' rearranges arguments and synthesizes *)
 let hook : ('x -> 'a -> 'b) -> ('x -> 'a) -> 'x -> 'b =
   fun f g x -> f x (g x)
 
-(* 型をよく見て 何かに気が付く？ *)
+(* Do you notice anything when you take a closer look at the type? *)
 let fork : ('a->'b->'c) -> ('x->'a) -> ('x->'b) -> ('x->'c) =
   fun h f g x -> h (f x) (g x)
-(* a->b->cという関数は
-(x->a)と(x->b)の引数を取らせる
+(* a-> b-> c is the function that takes the argument(result?) of (x->a) and (x->b) *)
 
+(*Do you know the word Mapreduce?
+    Search by Google and MapReduce
 *)
 
-(* MapReduceという言葉は知ってる？
-   Googleでの検索とMapReduce
-*)
-
-(* forkとhookは、どんな関係？
-hookをforkによって表現。forkは、hookによって？
+(*What is the relationship between fork and Hook?
+Express Hook by fork.
+Fork depends on Hook?
 h (f x) (g x) = (h (f x)) (g x) = (f >> h) x (g x)
-Scombinatorの意義を確認しよう
+Check the significance of Scombinator
 *)
 (*
-図を描く
-hookの図 と forkの図、相互対応(変換)
+Draw a figure
+Hook figure and Fork diagram, interaction (conversion)
 
 let hook : ('x -> 'a -> 'b) -> ('x -> 'a) -> 'x -> 'b =
   fun f -> fork f Fun.id
@@ -310,16 +319,16 @@ let fork : ('a->'b->'c) -> ('x->'a) -> ('x->'b) -> ('x->'c) =
   fun h f -> hook (f >> h)
 *)
 
-(* 数学は、patternの科学だよ *)
+(* Mathematics is the science of patterns *)
 
-(* いま、APLのように見える *)
-(* lambdaあり *)
+(*looks like APL now*)
+(*with lambdas*)
 let add2 : (d1,int) arr -> (d1,int) arr -> (int,int) arr
     = fun (Arr (upbx,xf)) (Arr (upby,yf)) ->
       assert (upbx = upby);
       Arr(upbx, fun i -> fork (+) xf yf i)
 
-(* lambdaなし *)
+(* without lambda *)
 let add2 : (d1,int) arr -> (d1,int) arr -> (int,int) arr
     = fun (Arr (upbx,xf)) (Arr (upby,yf)) ->
       assert (upbx = upby);
@@ -328,12 +337,12 @@ let add2 : (d1,int) arr -> (d1,int) arr -> (int,int) arr
 let _ = pr_arr1 a1
 let _ = a1 |> add2 (iota 7) |> pr_arr1
 
-(* 一般化しよう *)
-(* まず、型をよく見て 何かに気が付く？ *)
+(* let's generalize *)
+(* First of all, look closely at the type Do you notice anything? *)
 let zip_with : ('a -> 'b -> 'c) ->
            (int,'a) arr -> (int,'b) arr -> (int,'c) arr
- (* add2の型を見ると、別に何も思い浮ばない。一方、zipはmap1と比べて
-   一般化には、価値がある
+(* Looking at the type of add2, nothing comes to mind.
+   On the other hand, zip is worth generalizing similar to map1
  *)
  (*hide*)
     = fun f (Arr (upbx,xf)) (Arr (upby,yf)) ->
@@ -343,45 +352,45 @@ let zip_with : ('a -> 'b -> 'c) ->
 let _ = a1 |> zip_with (+) (iota 7) |> pr_arr1
 (*/hide*)
 
-(* APLでは、zip_withも、大事なので、空白で表現する *)
+(* In APL, zip_with is also important, so it is expressed with a space *)
 
-(* binary演算を考えよう op: 'a -> 'b -> 'c
-引数は、x:'a, y:'bなら、op x y (infixなら(APLように)、x op y)
-引数は、x:'t->'a, y:'t->'bなら、fork op x y (APLでそのまま: x op y)
-引数は、x:(d1,'a)arr, y:(d1,'b)arrなら、zip_with op x y (APLでそのまま: x op y)
+(* Consider binary operations op: 'a -> 'b -> 'c
+Arguments are x:'a, y:'b then op x y (if infix (like APL) then x op y)
+If arguments are x:'t->'a, y:'t->'b then fork op x y (as in APL: x op y)
+Arguments are x:(d1,'a)arr, y:(d1,'b)arr then zip_with op x y (as in APL: x op y)
 
-fork, zip_withは、2引数の適用を表す。深い関係。だから、APLで空白で表現される
+fork, zip_with represent the application of two arguments. deep relationship. So it is represented in APL with white space
 
-unary場合: op: 'a -> 'b
-x:'aなら、op x
-x:'t->'aなら、fun t -> x t |> op === x >> op
-x:(d1,'a)arrなら、map op x
+unary case: op: 'a -> 'b
+If x:'a then op x
+If x:'t->'a then fun t -> x t |> op === x >> op
+If x:(d1,'a)arr then map op x
 
-合成とmapは、同じように、深い関係。同じように、APLで空白で表現される
+Synthesis and map are similarly closely related. Similarly, represented by whitespace in APL
 *)
 
 
-(* sum_{i=1}^{5} i^2をやろう (TeX表記を使えば) *)
+(* Let's do sum_{i=1}^{5} i^2 (using TeX notation) *)
 (*hide*)
-(* 一般的にといえば、sum_{i=0}^{n-1} a_i *)
-(*再帰を使っても良いならば  初めて、再帰が現れる *)
-(* 結合は、右から、左から？ *)
+(* Generally speaking, sum_{i=0}^{n-1} a_i *)
+(*If recursion can be used, recursion will appear for the first time *)
+(* Is the join from the right or from the left? *)
 (*
   sum_{i=0}^{n-1} a_i
   = a_0 +  sum_{i=1}^{n-1} a_i
   = (a_0 + a_1) + sum_{i=2}^{n-1} a_i
   = (a_0 + a_1 + ... a_{k-1}) + sum_{i=k}^{n-1} a_i
-     もう足した                   まだ
+     already added                   yet to be computed
 *)
 let sum : (d1, int) arr -> int = function Arr (upb, xf) ->
-  (* acc: もうたした i:それから、まだ *)
+  (* acc: already computed i: then still *)
   let rec loop acc i =
     if i > upb then acc else loop (acc + xf i) (i+1)
   in loop (xf 0) 1
-(* APLで、+/ と呼ばれる *)
+(* in APL, called +/ *)
 (*/hide*)
 
-(* 一歩一歩式を伸ばして *)
+(* extend step by step formula *)
 let _ = iota 5 |> map1 succ |> map1 (fun x -> x * x) |>
   pr_arr1
 
@@ -398,22 +407,22 @@ let _ = iota 5 |> (map1 succ >> map1 sqr) |> sum
 let _ = iota 5 |> map1 (succ >> sqr) |> sum
 
 
-(* 一般化 左から結合して. APL出は、/と呼ばれる *)
+(* Generalized by joining from the left. in APL it is called / *)
 let reduce : ('a -> 'a -> 'a) -> (d1, 'a) arr -> 'a
   = fun f -> function Arr (upb, xf) ->
     let rec loop acc i =
       if i > upb then acc else loop (f acc (xf i)) (i+1)
     in loop (xf 0) 1
 
-(* 想像:
+(* Imagine:
 reduce op a = a_0 op a_1 op a_2 ... op a_(n-1)
  *)
 let _ = iota 10 |> map1 succ |> reduce (+)
-let _ = iota 10 |> map1 succ |> reduce ( * )  (* factorial 階乗 *)
+let _ = iota 10 |> map1 succ |> reduce ( * )  (* factorial *)
 let _ = iota 10 |> map1 succ |> reduce min
 let _ = iota 10 |> map1 succ |> reduce max
 
-(* 統計
+(* Statistics
   APL/J: mean = +/ % #
   var = (- mean) ....
  *)
@@ -426,8 +435,9 @@ let length : (d1,'a) arr -> int = function Arr(upb,_) -> upb + 1
 (* iota & length *)
 
 
-(* 流れを見よう flowchartを描こう
-型の話
+(* Let's see the flow
+   Let's draw a flowchart
+   type story
 *)
 let mean : (d1,int) arr -> float =
   fork (fun x y -> float_of_int x /. float_of_int y) (reduce (+)) length
@@ -435,9 +445,9 @@ let mean : (d1,int) arr -> float =
 let mean : (d1,float) arr -> float =
   fork (/.) (reduce (+.)) (length >> float_of_int)
 
-(* Gary Kildallの説明を参照 *)
+(* see Gary Kildall's description *)
 
-(* 先ず
+(* first
 let _ = iota 5 |>  mean
 *)
 
@@ -460,8 +470,9 @@ let standard_dev : (d1,float) arr -> float =
     sqrt)
   mean
 
+let sqrf : float -> float = fun x -> x *. x
+
 let standard_dev : (d1,float) arr -> float =
-  let sqrf x = x *. x in
   hook
    (fun x xbar -> map1 (Fun.flip (-.) xbar) x |>
      map1 sqrf |> reduce (+.) |>
@@ -484,7 +495,7 @@ let assure : string -> ('a -> bool) -> 'a -> 'a =
 let standard_dev : (d1,float) arr -> float =
   hook
    (fun x xbar -> map1 (Fun.flip (-.) xbar) x |>
-     map1 (fun x -> x *. x) |> reduce (+.) |>
+     map1 sqrf |> reduce (+.) |>
     (Fun.flip (/.)
       (((length x |> assure "too short" (Fun.flip(>) 1)) -1) |>
       float_of_int)) |>
@@ -500,7 +511,7 @@ let _ = iota 1 |> map1 float_of_int |> standard_dev
 let _ = a1 |> pr_arr1
 let _ = a1 |> rev |> rev |> pr_arr1
 
-(* 後で: 等価性
+(* next: equivalence
 let _ = assert ([|1;2|] = [|1;3|])
 
 a1;;
@@ -512,17 +523,17 @@ let _ = assert (a1 = (a1 |> rev |> rev))
 *)
 
 
-(* dotの定義しよう APLとどう違うの *)
+(* Let's define dot How is it different from APL *)
 (*hide*)
 let dot : (int,int) arr -> (int,int) arr -> int = fun arr1 arr2 ->
   zip_with ( * ) arr1 arr2 |> sum
 
 let _ = let v = iota 5 in dot v v
 let _ = dot (of_array [|0;1|]) (of_array [|5;0|])
-(* 上記、詳しくしよう *)
+(* details, above *)
 (*/hide*)
 
-(* もっと一般化 *)
+(* more generalized *)
 (*hide*)
 let dot_gen : ('a -> 'a -> 'a) ->
               ('a -> 'a -> 'a) ->
@@ -531,20 +542,18 @@ let dot_gen : ('a -> 'a -> 'a) ->
   zip_with f arr1 arr2 |> reduce g
 
 (*
-前のdot = dot_gen ( * ) (+)
+previous dot = dot_gen ( * ) (+)
 *)
 
-(* lambdaなし？ (かき) *)
+(* no lambda? (squeeze) *)
 
-(* APLでは、g.f *)
+(*in APL, g.f*)
 let _ = let v1 = iota 5 and v2 = iota 5 |> map1 succ |> rev in
         dot_gen (fun x y -> x - y |> abs) (+) v1 v2
 
-(* 他の内積の様な処理？
- 距離、例えば、(2,1)と(3,3)との距離、何？
+(* processing like other dot products?
+  Distance, say the distance between (2,1) and (3,3), what?
 *)
-let sqrf : float -> float = fun x -> x *. x
-
 let dist = fun a b -> zip_with (-.) a b |> map1 sqrf
   |> reduce (+.) |> sqrt
 
@@ -565,17 +574,16 @@ let _ = dist (of_array [|2.;1.|]) (of_array [|3.;3.|])
  *)
 
 (*
-add/min, add/max (ある町から町数までの距離)
- and/or (同じのテストを合格。でも、どんなテスト？
+add/min, add/max (distance from one town to number of towns)
+and/or (same test passed, but what test?
 
- 等価性との関係: L1、L2、Linf norm
+  Equivalence and relationship: L1, L2, Linf norm
 
+ distance: zip_with (-) a1 a2 |> map sqr |> reduce (+)
+ =         zip_with (fun x y -> x - y |> sqr) a1 a2 |> reduce (+)
+Remember the story of fork. I notice the pattern
 
- 距離: zip_with (-) a1 a2 |> map sqr |> reduce (+)
- =     zip_with (fun x y -> x - y |> sqr) a1 a2 |> reduce (+)
-forkの話を覚えよう。patternに気が付くよ
-
-定義しよう
+let's define
 
 dt op1 op2: fun x y -> op1 x y |> op2
 *)
@@ -587,11 +595,11 @@ let dot_gen : ('a -> 'b -> 'c) -> ('c -> 'c -> 'c) ->
   ((d1,'a) arr -> (d1,'b) arr -> 'c)
   = fun f g -> dt (zip_with f) (reduce g)
 
-(* 前述で
+(* in the previous
 let _ = assert (a1 = (a1 |> rev |> rev))
-どうして問題が起るの？ どうして関数比較できないの
+why is there a problem? why can't we compare functions
 
-normについての話 L_1, L_2, L_inf
+Talk about norm L_1, L_2, L_inf
 *)
 let distinf : (d1,int) arr -> (d1,int) arr -> int =
   dt (zip_with (dt (-) abs)) (reduce max)
@@ -602,7 +610,7 @@ let distinf : (d1,int) arr -> (d1,int) arr -> int =
 let _ = distinf (iota 5) (iota 5 |> map1 sqr)
 let _ = distinf a1 (a1 |> rev |> rev)
 
-(* dtは関数に活用すれば *)
+(* dt can be used as a function *)
 let dtf : ('a -> 'b -> 'c) -> ('c -> 'd) ->
   (('t -> 'a) -> ('t -> 'b) -> ('t -> 'd)) =
   fun f g -> fun x y -> fun t -> f (x t) (y t) |> g
@@ -612,28 +620,28 @@ let dtf : ('a -> 'b -> 'c) -> ('c -> 'd) ->
   fun f g -> dt (fork f) ((>>) g)
 
 (*
-関数なら
+if it is a function
              fun x y -> fun t -> op1 (x t) (y t) |> op2
              = fun x y -> fork op1 x y >> op2
              = dt (fork op1) ((>>) op2)
-arrなら
+if arr
 dot_gen op1 op1:
              fun x y -> zip_with op1 x y |> reduce op2
              = dt (zip_with op1) (reduce op2)
 
-だから
- 距離: zip_with (-) x y |> map sqr |> reduce (+)
- =     zip_with (fun x y -> x - y |> sqr) x y |> reduce (+)
- =     dt (zip_with (dt (-) sqr)) (reduce (+))
+that's why
+distance: zip_with (-) x y |> map sqr |> reduce (+)
+ =        zip_with (fun x y -> x - y |> sqr) x y |> reduce (+)
+ =        dt (zip_with (dt (-) sqr)) (reduce (+))
 *)
 
 
 (* ------------------------------------------------------------------------
-   2次元
+   2 dimensions
 *)
 type d2 = int * int
 
-(* 2次元のarrayの例 *)
+(* 2D array example *)
 let mm1 = Arr ((1,1), function
   | (0,0) -> 1
   | (0,1) -> 2
@@ -642,15 +650,15 @@ let mm1 = Arr ((1,1), function
  )
 
 let rho2 : d2 -> (d1,'a) arr -> (d2,'a) arr
- (* まず、自分で *)
+ (* first, explicit *)
  (*hide*)
  = fun (nr,nc) (Arr (upb,xf)) ->
    assert (nr*nc = upb+1);
    Arr((nr-1,nc-1), fun (i,j) -> i*nc + j |> xf)
 
 (*
- i*nc + jに対して、定義？
-lambdaなしで
+definition for i*nc + j?
+without lambdas
 *)
 
 (*/hide*)
@@ -685,7 +693,7 @@ let _ = m1 |> transpose |> transpose |> pr_arr2
 let _ = m1 = (m1 |> transpose |> transpose)
 *)
 
-(* 宿題:
+(* homework:
 diag : (d2,'a) arr -> (d1,'a) arr
 *)
 let diag : (d2,'a) arr -> (d1,'a) arr
@@ -704,12 +712,12 @@ let _ = m1 |> transpose |> diag |> pr_arr1
 let add2 : int -> (d2,int) arr -> (d2,int) arr
     = fun n -> function Arr (upbs,xf) ->
       Arr(upbs, fun (i,j) -> n + xf (i,j))
-(* lambdaなし *)
+(* no lambdas *)
 
 let _ = m1 |> pr_arr2
 let _ = m1 |> add2 1 |> pr_arr2
 (*/hide*)
-(* mapの一般化 *)
+(* generalization of map *)
 
 (*hide*)
 let map2 : ('a -> 'b) -> (d2,'a) arr -> (d2,'b) arr
@@ -717,7 +725,7 @@ let map2 : ('a -> 'b) -> (d2,'a) arr -> (d2,'b) arr
       Arr(upbs, fun (i,j) -> xf (i,j) |> f)
 (*/hide*)
 
-(* もっと般化？ *)
+(* more generalized? *)
 (*hide*)
 let map2 : ('a -> 'b) -> (d2,'a) arr -> (d2,'b) arr
     = fun f -> function Arr (upbs,xf) ->
@@ -737,7 +745,7 @@ let map1 : ('a -> 'b) -> (d1,'a) arr -> (d1,'b) arr
 let map : ('a -> 'b) -> ('bounds,'a) arr -> ('bounds,'b) arr
     = fun f -> function Arr (upbs,xf) ->
       Arr(upbs, xf >> f)
-(* map1と同じ *)
+(* same as map1 *)
 
 let _ = m1 |> map succ |> pr_arr2
 
@@ -745,7 +753,7 @@ let _ = iota 6 |> map succ |> pr_arr1
 
 let _ = one |> map succ |> (function Arr ((), xf) -> xf ())
 
-(* 基本的な関数なので、APLで明示的に書かない
+(* It's a basic function, so don't write it explicitly in APL
    1 + iota 6  --> map ((+) 1) (iota 6)
    1 + m2      --> map ((+) 1) m2
    1 + 2       --> map ((+) 1) 2
@@ -786,18 +794,18 @@ let _ = zip_with (+) m1 (m1 |> map succ) |> pr_arr2
 (* max? *)
 
 
-(* APLでは、A f.g Bは、scalarもvectorもmatrixも対象
-   matrixとmatrixかけ算: +.*
+(* In APL, A f.g B applies to both scalar, vector and matrix
+   matrix and matrix multiplication: +.*
    v1 +.* v2
  *)
 (*/hide*)
 
 (* m * m *)
 (*hide*)
-(* まず、数学的に考えよう *)
-(* A=B*Cなら、a_ij = ? そして、dotを用いて、どうなる *)
+(* Let's think mathematically first *)
+(* if A=B*C then a_ij = ? and using dot what happens *)
 (* a_ij = B[i;*] \dot C[*;j] = B[i;*] \dot C^T[j;*]
-   B[i;*]の表記について
+   About the notation of B[i;*]
 *)
 
 let row : (d2,'a) arr -> int -> (d1,'a) arr
@@ -811,9 +819,9 @@ let to_rows : (d2,'a) arr -> (d1,(d1,'a)arr) arr
 let to_rows : ('d1*'d2,'a) arr -> ('d1,('d2,'a)arr) arr
     = function Arr ((nr1,nc1),xf)  ->
       Arr (nr1, fun i -> Arr (nc1,fun j -> xf (i,j)))
-(* from_rows? 問題 *)
-(* curryと関係？ *)
-(* 以前のpr_arr2をみよう？ 思い出す？ *)
+(* from_rows? problem *)
+(* related to curry? *)
+(* See previous pr_arr2? Remember? *)
 
 let matmul : (d2,int) arr -> (d2,int) arr -> (d2,int) arr
     = function Arr ((nr1,nc1), xf1) as m1 ->
@@ -821,7 +829,7 @@ let matmul : (d2,int) arr -> (d2,int) arr -> (d2,int) arr
       assert (nc1 = nr2);
       Arr ((nr1,nc2), fun (i,j) -> dot (row m1 i) (row (transpose m2) j))
 
-(* forkが見えるの？ *)
+(* Can you see the fork? *)
 
 let matmul : (d2,int) arr -> (d2,int) arr -> (d2,int) arr
     = function Arr ((nr1,nc1), xf1) as m1 ->
@@ -848,9 +856,9 @@ let _ = matmul m1 (transpose m1) |> pr_arr2
 (*/hide*)
 
 
-(* APLでは、A f.g Bは、scalarもvectorもmatrixも対象
-   matrixとmatrixかけ算: +.*
- *)
+(* In APL, A f.g B applies to both scalar, vector and matrix
+    matrix and matrix multiplication: +.*
+*)
 (*hide*)
 let matmul_gen : ('a -> 'a -> 'a) -> ('a -> 'a -> 'a) ->
   (d2,'a) arr -> (d2,'a) arr -> (d2,'a) arr
@@ -862,11 +870,11 @@ let matmul_gen : ('a -> 'a -> 'a) -> ('a -> 'a -> 'a) ->
         dot_gen f g (row m1 i) (row (transpose m2) j))
 (*/hide*)
 
-(* 応用: 1ー全ての最小距離
+(* application: 1 - minimum distance for all
 d(0,1) = 10, d(1,2)=20, d(2,3)=15, d(0,3)=5
 *)
 
-(* pr_arr1, もっと一般的に (loopなし): cons, snoc (append), intercalate *)
+(* pr_arr1, more generally (no loop): cons, snoc (append), intercalate *)
 (*hide*)
 let append : (d1,'a) arr -> (d1,'a) arr -> (d1,'a) arr
     = function Arr (upb1,xf1) ->
@@ -875,7 +883,7 @@ let append : (d1,'a) arr -> (d1,'a) arr -> (d1,'a) arr
 
 let _ = append (iota 3) (iota 4) |> pr_arr1
 
-(* 各要素の間にある値を入れる *)
+(* insert the value between each element *)
 let intercalate : 'a -> (d1,'a) arr -> (d1,'a) arr
     = fun x -> function Arr (upb1,xf1) ->
       Arr (upb1*2, fun i -> if i mod 2 = 0 then xf1 (i / 2) else x)
@@ -885,25 +893,25 @@ let _ = iota 2 |> intercalate 10 |> pr_arr1
 let _ = iota 3 |> intercalate 10 |> pr_arr1
 let _ = iota 4 |> intercalate 10 |> pr_arr1
 
-(* mapのような副作用をやる関数 *)
+(* Function like map but that does side effects *)
 let iter : ('a -> unit) -> ('s,'a) arr -> unit
     = fun f -> function Arr (upb,xf) ->
       for i = 0 to upb do xf i |> f done
 
-(* 今、pr_arr1を演算子だけで実装出来る。 *)
+(* Now we can implement pr_arr1 with just operators. *)
 let pr_arr1' : (d1,int) arr -> unit = fun arr ->
   let arr' = arr |> map string_of_int |> intercalate " " in
   append (append (of_array [|"|"|]) arr') (of_array [|"|\n"|]) |>
   iter print_string
 
 (*
-  append (append (of_array [|"|"|]) arr') (of_array [|"|\n"|]) |>
-は醜いね。
-もっと綺麗二しよう
+   append (append (of_array [|"|"|]) arr') (of_array [|"|\n"|]) |>
+is ugly
+let's be more beautiful
 
 of_array [| of_array [|"|"|]; arr'; of_array [|"|\n"|] |]
- |> reduce append
-APLらしい
+  |> reduce append
+APL-like
 *)
 
 let _ = iota 1 |> pr_arr1'
@@ -913,11 +921,11 @@ let _ = iota 3 |> pr_arr1'
 
 
 (* min/max *)
-(* matrixの最大の要素 *)
+(* largest element of matrix *)
 let _ = pr_arr2 m1
 let _ = m1 |> to_rows |> map (reduce max) |> reduce max
 
-(* 最大と最小の要素、同時に *)
+(* largest and smallest element, at the same time *)
 let minmax : 'a * 'a -> 'a * 'a -> 'a * 'a =
   fun (x1,y1) (x2,y2) -> (min x1 x2, max y1 y2)
 
@@ -934,7 +942,7 @@ let get : ('bounds, 'a) arr -> 'bounds -> 'a
     = function Arr (b, xf) -> fun i -> xf i
 
 
-(* materialize: vectorとして、tileとして、など *)
+(* materialize: as vector, as tile, etc *)
 
 let materialize2 : 'a -> (d2,'a) arr -> (d2,'a) arr
  = fun iv -> function Arr ((upr,upc),xf) ->
