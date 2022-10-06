@@ -257,8 +257,8 @@ let daytime = [|
  (30000,30000,29000);
  (30000,30000,29000); (* 下記の代わりに *)
  (* (0,0,0); *)
- |] |> of_array |> 
-  map (fun (x,y,z) -> 
+ |] |> of_array |>
+  map (fun (x,y,z) ->
     (Char.chr (x / 256), Char.chr (y / 256), Char.chr(z / 256)))
 
 ;;

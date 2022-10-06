@@ -23,12 +23,12 @@ fractal法で細かくする。最後に画像に変換する
 
 (* 先ず、scaleを考えまちょう
  *)
-let scale_twice : (d2, 'a) arr -> (d2, 'a) arr 
+let scale_twice : (d2, 'a) arr -> (d2, 'a) arr
     = function Arr ((upbr,upbc), xf) ->
     Arr ((2*upbr+1,2*upbc+1), fun (i,j) -> xf (i/2,j/2))
-(* 
+(*
 元の画像のpixelがx、拡大された画像のpixelがyとされて、
-y[2i,2j], y[2i+1,2j], y[2i,2j+1], y[2i+1,2j+1]のそれぞれは、x[i,j]と相当する  
+y[2i,2j], y[2i+1,2j], y[2i,2j+1], y[2i+1,2j+1]のそれぞれは、x[i,j]と相当する
  *)
 
 let _ = of_array [| 4;8;8;16|] |> rho2 (2,2) |>
@@ -43,15 +43,15 @@ let _ = of_array [| 4;8;8;16|] |> rho2 (2,2) |>
 let _ = of_array [| 4;8;8;16|] |> rho2 (2,2) |>
   scale_twice |> scale_twice |> pr_arr2
 
-let fimul : float -> int -> int = fun f -> 
+let fimul : float -> int -> int = fun f ->
   float_of_int >> ( *. ) f >> int_of_float
 
-(* 
+(*
 縮小
 一番の近くpixel (nearest-neighbor)
 scale_twiceと違い、pixelとpixelの間に拡大・縮小
  *)
-let scale_nn : float -> (d2, 'a) arr -> (d2, 'a) arr 
+let scale_nn : float -> (d2, 'a) arr -> (d2, 'a) arr
  = fun scale -> function Arr ((upbr,upbc),xf) ->
    let inv = 1. /. scale in
    Arr ((fimul scale upbr, fimul scale upbc),
@@ -59,21 +59,21 @@ let scale_nn : float -> (d2, 'a) arr -> (d2, 'a) arr
 
 
 (* [-rscale/2 .. rscale/2]以内の乱数 *)
-let rand () = 
+let rand () =
   let rscale = 6 in
   Random.int rscale - rscale / 2
 
-let noise : (d2,int) arr -> (d2,int) arr = fun (Arr (d,_)) -> 
+let noise : (d2,int) arr -> (d2,int) arr = fun (Arr (d,_)) ->
    Arr (d, fun (i,j) -> if i land 1 = 0 && j land 1 = 0 then 0 else rand ())
 
-(* 
+(*
 素朴の拡大(最近の隣やつ) ＋ 乱数
  *)
 let expand_nn : (d2,int) arr -> (d2,int) arr = fun m ->
   let m2 = map (( * ) 2) m |> scale_twice in
   zip_with (+) m2 (noise m2) |> materialize2 0
 
-let m0 = of_array [| 4;4;4;4|] |> rho2 (2,2)  
+let m0 = of_array [| 4;4;4;4|] |> rho2 (2,2)
 let _ = m0 |> pr_arr2
 let _ = m0 |> expand_nn |> pr_arr2
 (*
@@ -85,7 +85,7 @@ let _ = m0 |> expand_nn |> pr_arr2
 
 (* Church数 *)
 let rec ntimes : int -> ('a -> 'a) -> 'a -> 'a = fun n f z ->
-  if n = 0 then z else ntimes (n-1) f (f z) 
+  if n = 0 then z else ntimes (n-1) f (f z)
 
 let m = m0 |> ntimes 7 expand_nn
 let _ = display_as_ppm "/tmp/a1.ppm" daytime m
@@ -103,10 +103,10 @@ let scale_twice_bilinear : (d2,int) arr -> (d2,int) arr = fun m ->
    | (0,0) -> m00
    | (1,0) -> (m00 + get m (i1+1,j1)) / 2
    | (0,1) -> (m00 + get m (i1,j1+1)) / 2
-   | (1,1) -> (m00 + get m (i1,j1+1) + get m (i1+1,j1) + 
+   | (1,1) -> (m00 + get m (i1,j1+1) + get m (i1+1,j1) +
                get m (i1+1,j1+1)) / 4
  )
-(* 
+(*
 (以内点の)共有に気を付けて
  *)
 let _ = of_array [| 4;8;8;16|] |> rho2 (2,2) |>
@@ -151,12 +151,12 @@ let _ = display_as_ppm "/tmp/a1.ppm" daytime m
 let _ = display_as_ppm "/tmp/a1.ppm" night m
 (* 自分で ffいじてみて *)
 
-let _ = iota 13 |> map (float_of_int >> ( *. ) 0.1 >> (+.) 1.0) |> 
+let _ = iota 13 |> map (float_of_int >> ( *. ) 0.1 >> (+.) 1.0) |>
    iter (fun i -> Printf.printf "%g\n" i)
 
-let _ = iota 13 |> map (float_of_int >> ( *. ) 0.1 >> (+.) 1.0) |> 
+let _ = iota 13 |> map (float_of_int >> ( *. ) 0.1 >> (+.) 1.0) |>
    iter (fun i ->
-    m0 |> ntimes 8 (expander scale_twice_bilinear i) |> 
+    m0 |> ntimes 8 (expander scale_twice_bilinear i) |>
     display_as_ppm (Printf.sprintf "/tmp/a%g.ppm" i) daytime)
 
 
@@ -167,10 +167,10 @@ expand_bilinear3 同じように
 (* bilinear, 別の手法 *)
 
 let shift1 : d1 -> (d1, 'a) arr -> (d1, 'a) arr
-    = fun n -> function Arr (upb, xf) -> 
+    = fun n -> function Arr (upb, xf) ->
         (* xf(i-n)はよく評価できるため 0<= i-n <= upb成り立つべき *)
-        Arr(upb, fun i -> 
-          let j = i-n in 
+        Arr(upb, fun i ->
+          let j = i-n in
           (if j < 0 then 0 else if j > upb then upb else j) |> xf)
 
 let _ = iota 5 |> shift1 0 |> pr_arr1
@@ -188,10 +188,10 @@ let pair_clip : d2 -> d2 -> d2 = fun (x,y) (maxx,maxy) ->
    (if y < 0 then 0 else if y > maxy then maxy else y))
 
 let shift2 : d2 -> (d2, 'a) arr -> (d2, 'a) arr
-    = fun n -> function Arr (upb, xf) -> 
+    = fun n -> function Arr (upb, xf) ->
         (* xf(i-n)はよく評価できるため 0<= i-n <= upb成り立つべき *)
-        Arr(upb, fun i -> 
-          let j = pair_sub i n in 
+        Arr(upb, fun i ->
+          let j = pair_sub i n in
           pair_clip j upb |> xf)
 
 (* 別の手法
@@ -235,7 +235,7 @@ let convolve2 : d2 ->                   (* patternの中央 *)
                 (d2,int) arr ->         (* pattern *)
                 (d2,int) arr -> (d2,int) arr
     = fun pcenter pattern m ->
-      pattern |> 
+      pattern |>
       mapi (fun idx n -> map (( * ) n) m |> shift2 (pair_sub pcenter idx)) |>
       reduce2 (zip_with (+))
 
@@ -258,11 +258,11 @@ let _ = convolve2 (1,1) mat2 mat1 |> pr_arr2
 *)
 
 let scale_twice_bilinear : (d2,int) arr -> (d2,int) arr = fun m ->
-  let mvert = convolve2 (0,0) (of_array [|1;1|] |> rho2 (2,1)) m |> 
+  let mvert = convolve2 (0,0) (of_array [|1;1|] |> rho2 (2,1)) m |>
              map (fun x -> x / 2) in
-  let mhorz = convolve2 (0,0) (of_array [|1;1|] |> rho2 (1,2)) m |> 
+  let mhorz = convolve2 (0,0) (of_array [|1;1|] |> rho2 (1,2)) m |>
              map (fun x -> x / 2) in
-  let mdiag = convolve2 (0,0) (of_array [|1;1; 1;1|]  |> rho2 (2,2)) m |> 
+  let mdiag = convolve2 (0,0) (of_array [|1;1; 1;1|]  |> rho2 (2,2)) m |>
               map (fun x -> x / 4) in
   Arr (pair_mul (rho m) 2,
    fun (i,j) ->
@@ -276,7 +276,7 @@ let scale_twice_bilinear : (d2,int) arr -> (d2,int) arr = fun m ->
 
 
 let _ = of_array [| 4;8;8;16|] |> rho2 (2,2) |>
-        convolve2 (0,0) (of_array [|1;1|] |> rho2 (2,1)) 
+        convolve2 (0,0) (of_array [|1;1|] |> rho2 (2,1))
        |> pr_arr2
 (*
  |12 24|
@@ -284,7 +284,7 @@ let _ = of_array [| 4;8;8;16|] |> rho2 (2,2) |>
 *)
 
 let _ = of_array [| 4;8;8;16|] |> rho2 (2,2) |>
-        convolve2 (0,0) (of_array [|1;1|] |> rho2 (1,2)) 
+        convolve2 (0,0) (of_array [|1;1|] |> rho2 (1,2))
        |> pr_arr2
 (*
  |12 16|
@@ -310,17 +310,17 @@ let _ = of_array [| 4;8;8;16|] |> rho2 (2,2) |>
  |8 10 12 14 16|
 *)
 
-(* 
+(*
 square-diamond
  *)
 
 let scale_twice_sd : (d2,int) arr -> (d2,int) arr = fun m ->
   let diamond_pat = of_array [|1;2;1; 1;2;1|] |> rho2 (2,3) in
-  let mvert = convolve2 (0,1) diamond_pat m |> 
+  let mvert = convolve2 (0,1) diamond_pat m |>
              map (fun x -> x / 8) in
-  let mhorz = convolve2 (1,0) (transpose diamond_pat) m |> 
+  let mhorz = convolve2 (1,0) (transpose diamond_pat) m |>
              map (fun x -> x / 8) in
-  let mdiag = convolve2 (0,0) (of_array [|1;1; 1;1|] |> rho2 (2,2)) m |> 
+  let mdiag = convolve2 (0,0) (of_array [|1;1; 1;1|] |> rho2 (2,2)) m |>
               map (fun x -> x / 4) in
   Arr (pair_mul (rho m) 2,
    fun (i,j) ->
@@ -373,11 +373,11 @@ let _ = bicubic_bikernel |> pr_arr2
 
 
 let scale_twice_bc : (d2,int) arr -> (d2,int) arr = fun m ->
-  let mvert = convolve2 (1,0) (bicubic_kernel |> rho2 (4,1)) m |> 
+  let mvert = convolve2 (1,0) (bicubic_kernel |> rho2 (4,1)) m |>
              map (fun x -> x / 16) in
-  let mhorz = convolve2 (0,1) (bicubic_kernel |> rho2 (1,4)) m |> 
+  let mhorz = convolve2 (0,1) (bicubic_kernel |> rho2 (1,4)) m |>
              map (fun x -> x / 16) in
-  let mdiag = convolve2 (1,1) bicubic_bikernel m |> 
+  let mdiag = convolve2 (1,1) bicubic_bikernel m |>
               map (fun x -> x / 256) in
   Arr (pair_mul (rho m) 2,
    fun (i,j) ->
@@ -451,34 +451,34 @@ let expand_gp : (d2,int) arr -> (d2,int) arr = fun m ->
 
 let _ = of_array [|4|] |> rho2 (1,1) |> expand_gp |> expand_gp |> pr_arr2
 
-let mg = of_array [|4|] |> rho2 (1,1) |> 
-         expand_gp |> expand_gp |> 
-         expand_gp |> expand_gp |> 
+let mg = of_array [|4|] |> rho2 (1,1) |>
          expand_gp |> expand_gp |>
-         expand_gp |> expand_gp 
+         expand_gp |> expand_gp |>
+         expand_gp |> expand_gp |>
+         expand_gp |> expand_gp
 let _ = display_as_ppm "/tmp/a1.ppm" daytime mg
 
 (* 2倍の拡大: 近所＋乱数
  *)
 
 
-let m0' = of_array [| 4;5;4; 5; 7; 5; 4; 5; 4|] |> rho2 (3,3)  
-let m2 = m0' |> 
-   expand1 |> materialize2 0 |> 
-   expand1 |> materialize2 0 |> 
-   expand1 |> materialize2 0 |> 
-   expand1 |> materialize2 0 |> 
+let m0' = of_array [| 4;5;4; 5; 7; 5; 4; 5; 4|] |> rho2 (3,3)
+let m2 = m0' |>
+   expand1 |> materialize2 0 |>
+   expand1 |> materialize2 0 |>
+   expand1 |> materialize2 0 |>
+   expand1 |> materialize2 0 |>
    expand1 |> materialize2 0 |>
    expand1 |> materialize2 0 |>
    expand1 |> materialize2 0 |>
    expand1 |> materialize2 0
 
-let m0' = of_array [| 4;4;4; 4; 4; 4; 4; 4; 4|] |> rho2 (3,3)  
-let m2 = m0' |> 
-   expand1 |> materialize2 0 |> 
-   expand |> materialize2 0 |> 
-   expand1 |> materialize2 0 |> 
-   expand |> materialize2 0 |> 
+let m0' = of_array [| 4;4;4; 4; 4; 4; 4; 4; 4|] |> rho2 (3,3)
+let m2 = m0' |>
+   expand1 |> materialize2 0 |>
+   expand |> materialize2 0 |>
+   expand1 |> materialize2 0 |>
+   expand |> materialize2 0 |>
    expand1 |> materialize2 0 |>
    expand |> materialize2 0 |>
    expand1 |> materialize2 0 |>
@@ -508,13 +508,13 @@ let expand3 : (d2,int) arr -> (d2,int) arr = fun m ->
                (get m (i1+1,j1+1))*4) / 12 + rand ()
  )
 
-(* 
+(*
 3倍拡大
  *)
 
 
-let m0_2 = of_array [| 4;4;4; 4; 4; 4; 4; 4; 4|] |> rho2 (3,3)  
-let m2 = m0_2 |> 
+let m0_2 = of_array [| 4;4;4; 4; 4; 4; 4; 4; 4|] |> rho2 (3,3)
+let m2 = m0_2 |>
    expand1 |> materialize2 0 |> scale_nn 0.7 |>
    expand |> materialize2 0 |> scale_nn 0.7 |>
    expand1 |> materialize2 0 |> scale_nn 0.7 |>

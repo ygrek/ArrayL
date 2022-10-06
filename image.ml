@@ -5,15 +5,15 @@ type cmap = (d1,char*char*char) arr
 
 let reds : cmap = iota 256 |> map (fun i -> Char.(chr i, chr 0, chr 0))
 
-let cmap1 : cmap = iota 256 |>  
+let cmap1 : cmap = iota 256 |>
     map (fun i -> Char.(chr (min 255 (2*i)), chr (min 255 (i)), chr (min 255 (2*i))))
 
 
-let display_as_ppm : string -> cmap -> (d2,int) arr -> unit = 
+let display_as_ppm : string -> cmap -> (d2,int) arr -> unit =
  fun fname cmap arr2 -> (* fname:ファイル名 cmap:そのままの意味 arr2:拡大後の配列  *)
   let max_color_val = 255 in (* 輝度の最大値 *)
   let cmap_bytes = map (fun (r,g,b) -> (* cmap:(d1,char*char*char) -> (d1,bytes) arrへの変換？ *)
-    Bytes.init 3 (function 0 -> r | 1 -> g | 2 -> b | _ -> assert false)) 
+    Bytes.init 3 (function 0 -> r | 1 -> g | 2 -> b | _ -> assert false))
     cmap in
   let cmap_len1 = rho cmap in (* cmapのサイズ(bounds) *)
   let (arr2_min,arr2_max) = (* arr2の最大値arr2_maxと最小値arr2_min *)
@@ -32,7 +32,7 @@ let img1 = Arr ((199,199), fun (i,j) -> i + j)
 
 let img2 = Arr ((199,199), fun (i,j) -> i*i + j*j)
 
-let img3 = Arr ((199,199), fun (i,j) -> 
+let img3 = Arr ((199,199), fun (i,j) ->
   (i-100)*i + (j-50)*j |> float_of_int |> sqrt |> truncate)
 
 let _ = display_as_ppm "/tmp/a1.ppm" cmap1 img3
@@ -52,13 +52,13 @@ let read_pgm : string -> (d2,int) arr =
     let alloc ncols nrows =
       Printf.printf "Reading image %dx%d...\n" nrows ncols;
       Array2.create int8_unsigned c_layout nrows ncols in
-    Scanf.bscanf (Scanf.Scanning.from_function (fun () -> input_char cin)) 
-      "P5 %u %u %u%c" @@ 
+    Scanf.bscanf (Scanf.Scanning.from_function (fun () -> input_char cin))
+      "P5 %u %u %u%c" @@
       fun ncols nrows maxgray term ->
-        if not (term = ' ' || term = '\n' || term = '\t') then 
+        if not (term = ' ' || term = '\n' || term = '\t') then
           failwith ("Could not find the single terminating whitespace " ^
                     "at the end of the header");
-        if maxgray > 255 || maxgray <= 0 then 
+        if maxgray > 255 || maxgray <= 0 then
           Printf.kprintf failwith "maxgray %d is odd or unsupported"
                       maxgray;
         alloc ncols nrows

@@ -7,7 +7,7 @@
 
 (* arrayとは *)
 
-(* 
+(*
 内容と形
 1 2 3 4 5 6
 
@@ -86,7 +86,7 @@ type d1 = int                     (* 本来、自然数 *)
 (* 表示しよう *)
 (* 以下は、今のところ、飛しょう *)
 
-let pr_arr1gen : (bool -> unit) -> ('a -> unit) -> (d1,'a) arr -> unit = 
+let pr_arr1gen : (bool -> unit) -> ('a -> unit) -> (d1,'a) arr -> unit =
   fun pr_border pr_el  -> function Arr (upb,xf) ->
     pr_border false;
     pr_el @@ xf 0;
@@ -98,7 +98,7 @@ let pr_arr1gen : (bool -> unit) -> ('a -> unit) -> (d1,'a) arr -> unit =
 
 
 let pr_arr1 : (d1,int) arr -> unit = fun arr ->
-  pr_arr1gen (fun b -> print_string "|"; if b then print_newline ()) 
+  pr_arr1gen (fun b -> print_string "|"; if b then print_newline ())
              print_int arr
 
 
@@ -131,15 +131,15 @@ let _ = pr_arr1 a1
    a_1 = 2 = b_2
 一般化？
  *)
-let rev : (d1,'a) arr -> (d1,'a) arr = 
+let rev : (d1,'a) arr -> (d1,'a) arr =
   function Arr (upb,a) ->
   Arr(upb,fun i -> a (upb-i))
 
-let _ = pr_arr1 (rev a1) 
+let _ = pr_arr1 (rev a1)
 
 let _ = pr_arr1 @@ rev a1
 
-(* 左から右への流れ *) 
+(* 左から右への流れ *)
 let _ = rev a1 |> pr_arr1
 let _ = a1 |> rev |> pr_arr1
 
@@ -209,7 +209,7 @@ let _ = a1 |> (map1 (( * ) 2) >> map1 ((+) 1)) |> pr_arr1
 let _ = a1 |> map1 ( ( * ) 2 >> (+) 1) |> pr_arr1
 
 (*
-map1 f >> map1 g === 
+map1 f >> map1 g ===
 map1 (f >> g)
 意味が同じ、効率が少し高める
 
@@ -273,18 +273,18 @@ let hook : ('x -> 'a -> 'b) -> ('x -> 'a) -> 'x -> 'b =
   fun f g x -> f x (g x)
 
 (* 型をよく見て 何かに気が付く？ *)
-let fork : ('a->'b->'c) -> ('x->'a) -> ('x->'b) -> ('x->'c) = 
+let fork : ('a->'b->'c) -> ('x->'a) -> ('x->'b) -> ('x->'c) =
   fun h f g x -> h (f x) (g x)
 (* a->b->cという関数は
 (x->a)と(x->b)の引数を取らせる
 
 *)
 
-(* MapReduceという言葉は知ってる？ 
+(* MapReduceという言葉は知ってる？
    Googleでの検索とMapReduce
 *)
 
-(* forkとhookは、どんな関係？ 
+(* forkとhookは、どんな関係？
 hookをforkによって表現。forkは、hookによって？
 h (f x) (g x) = (h (f x)) (g x) = (f >> h) x (g x)
 Scombinatorの意義を確認しよう
@@ -303,10 +303,10 @@ let hook : ('x -> 'a -> 'b) -> ('x -> 'a) -> 'x -> 'b =
   fun f g x -> fork (@@) f g x
 (* hook = fork (@@) *)
 
-let fork : ('a->'b->'c) -> ('x->'a) -> ('x->'b) -> ('x->'c) = 
+let fork : ('a->'b->'c) -> ('x->'a) -> ('x->'b) -> ('x->'c) =
   fun h f g x -> hook (fun x -> f x |> h) g x
 
-let fork : ('a->'b->'c) -> ('x->'a) -> ('x->'b) -> ('x->'c) = 
+let fork : ('a->'b->'c) -> ('x->'a) -> ('x->'b) -> ('x->'c) =
   fun h f -> hook (f >> h)
 *)
 
@@ -330,7 +330,7 @@ let _ = a1 |> add2 (iota 7) |> pr_arr1
 
 (* 一般化しよう *)
 (* まず、型をよく見て 何かに気が付く？ *)
-let zip_with : ('a -> 'b -> 'c) -> 
+let zip_with : ('a -> 'b -> 'c) ->
            (int,'a) arr -> (int,'b) arr -> (int,'c) arr
  (* add2の型を見ると、別に何も思い浮ばない。一方、zipはmap1と比べて
    一般化には、価値がある
@@ -359,7 +359,7 @@ x:(d1,'a)arrなら、map op x
 
 合成とmapは、同じように、深い関係。同じように、APLで空白で表現される
 *)
-   
+
 
 (* sum_{i=1}^{5} i^2をやろう (TeX表記を使えば) *)
 (*hide*)
@@ -382,10 +382,10 @@ let sum : (d1, int) arr -> int = function Arr (upb, xf) ->
 (*/hide*)
 
 (* 一歩一歩式を伸ばして *)
-let _ = iota 5 |> map1 succ |> map1 (fun x -> x * x) |> 
+let _ = iota 5 |> map1 succ |> map1 (fun x -> x * x) |>
   pr_arr1
 
-let _ = iota 5 |> map1 succ |> map1 (fun x -> x * x) |> 
+let _ = iota 5 |> map1 succ |> map1 (fun x -> x * x) |>
   sum
 
 let sqr : int -> int = fun x -> x * x
@@ -426,18 +426,18 @@ let length : (d1,'a) arr -> int = function Arr(upb,_) -> upb + 1
 (* iota & length *)
 
 
-(* 流れを見よう flowchartを描こう 
+(* 流れを見よう flowchartを描こう
 型の話
 *)
-let mean : (d1,int) arr -> float = 
+let mean : (d1,int) arr -> float =
   fork (fun x y -> float_of_int x /. float_of_int y) (reduce (+)) length
 
-let mean : (d1,float) arr -> float = 
+let mean : (d1,float) arr -> float =
   fork (/.) (reduce (+.)) (length >> float_of_int)
 
 (* Gary Kildallの説明を参照 *)
 
-(* 先ず 
+(* 先ず
 let _ = iota 5 |>  mean
 *)
 
@@ -452,21 +452,21 @@ let _ = iota 5 |> map1 float_of_int |> mean
    assure: string -> ('a -> bool) -> 'a -> 'a
 *)
 
-let standard_dev : (d1,float) arr -> float = 
-  hook 
+let standard_dev : (d1,float) arr -> float =
+  hook
    (fun x xbar -> map1 (Fun.flip (-.) xbar) x |>
-     map1 (fun x -> x *. x) |> reduce (+.) |> 
+     map1 (fun x -> x *. x) |> reduce (+.) |>
     (Fun.flip (/.) ((length x -1) |> float_of_int)) |>
-    sqrt) 
+    sqrt)
   mean
 
-let standard_dev : (d1,float) arr -> float = 
+let standard_dev : (d1,float) arr -> float =
   let sqrf x = x *. x in
-  hook 
+  hook
    (fun x xbar -> map1 (Fun.flip (-.) xbar) x |>
-     map1 sqrf |> reduce (+.) |> 
+     map1 sqrf |> reduce (+.) |>
     (Fun.flip (/.) ((length x -1) |> float_of_int)) |>
-    sqrt) 
+    sqrt)
   mean
 
 let _ = of_array [| 1.0; 1.0; 1.0 |] |> standard_dev
@@ -477,18 +477,18 @@ let _ = of_array [| 1.0; 2.0; 3.0 |] |> standard_dev
 let _ = iota 1 |> map1 float_of_int |> standard_dev
 *)
 
-let assure : string -> ('a -> bool) -> 'a -> 'a = 
-  fun str pred x -> 
+let assure : string -> ('a -> bool) -> 'a -> 'a =
+  fun str pred x ->
     if pred x then x else failwith str
 
-let standard_dev : (d1,float) arr -> float = 
-  hook 
+let standard_dev : (d1,float) arr -> float =
+  hook
    (fun x xbar -> map1 (Fun.flip (-.) xbar) x |>
-     map1 (fun x -> x *. x) |> reduce (+.) |> 
-    (Fun.flip (/.) 
-      (((length x |> assure "too short" (Fun.flip(>) 1)) -1) |> 
+     map1 (fun x -> x *. x) |> reduce (+.) |>
+    (Fun.flip (/.)
+      (((length x |> assure "too short" (Fun.flip(>) 1)) -1) |>
       float_of_int)) |>
-    sqrt) 
+    sqrt)
   mean
 
 let _ = of_array [| 1.0; 2.0; 3.0 |] |> standard_dev
@@ -526,7 +526,7 @@ let _ = dot (of_array [|0;1|]) (of_array [|5;0|])
 (*hide*)
 let dot_gen : ('a -> 'a -> 'a) ->
               ('a -> 'a -> 'a) ->
-              (int,'a) arr -> (int,'a) arr -> 'a 
+              (int,'a) arr -> (int,'a) arr -> 'a
   = fun f g arr1 arr2 ->
   zip_with f arr1 arr2 |> reduce g
 
@@ -545,16 +545,16 @@ let _ = let v1 = iota 5 and v2 = iota 5 |> map1 succ |> rev in
 *)
 let sqrf : float -> float = fun x -> x *. x
 
-let dist = fun a b -> zip_with (-.) a b |> map1 sqrf 
+let dist = fun a b -> zip_with (-.) a b |> map1 sqrf
   |> reduce (+.) |> sqrt
 
 let _ = dist (of_array [|2.;1.|]) (of_array [|3.;3.|])
 
-let dist = fun a b -> 
+let dist = fun a b ->
   zip_with (fun x y -> x -. y |> sqrf) a b
   |> reduce (+.) |> sqrt
 
-let dist = fun a b -> 
+let dist = fun a b ->
   dot_gen (fun x y -> x -. y |> sqrf) (+.) a b |> sqrt
 
 let _ = dist (of_array [|2.;1.|]) (of_array [|3.;3.|])
@@ -584,17 +584,17 @@ let dt : ('a -> 'b -> 'c) -> ('c -> 'd) ->
   ('a -> 'b -> 'd) = fun f g -> fun x y -> f x y |> g
 
 let dot_gen : ('a -> 'b -> 'c) -> ('c -> 'c -> 'c) ->
-  ((d1,'a) arr -> (d1,'b) arr -> 'c) 
+  ((d1,'a) arr -> (d1,'b) arr -> 'c)
   = fun f g -> dt (zip_with f) (reduce g)
 
 (* 前述で
 let _ = assert (a1 = (a1 |> rev |> rev))
 どうして問題が起るの？ どうして関数比較できないの
 
-normについての話 L_1, L_2, L_inf 
+normについての話 L_1, L_2, L_inf
 *)
 let distinf : (d1,int) arr -> (d1,int) arr -> int =
-  dt (zip_with (dt (-) abs)) (reduce max) 
+  dt (zip_with (dt (-) abs)) (reduce max)
 
 let distinf : (d1,int) arr -> (d1,int) arr -> int =
   dot_gen (dt (-) abs) max
@@ -604,11 +604,11 @@ let _ = distinf a1 (a1 |> rev |> rev)
 
 (* dtは関数に活用すれば *)
 let dtf : ('a -> 'b -> 'c) -> ('c -> 'd) ->
-  (('t -> 'a) -> ('t -> 'b) -> ('t -> 'd)) = 
+  (('t -> 'a) -> ('t -> 'b) -> ('t -> 'd)) =
   fun f g -> fun x y -> fun t -> f (x t) (y t) |> g
 
 let dtf : ('a -> 'b -> 'c) -> ('c -> 'd) ->
-  (('t -> 'a) -> ('t -> 'b) -> ('t -> 'd)) = 
+  (('t -> 'a) -> ('t -> 'b) -> ('t -> 'd)) =
   fun f g -> dt (fork f) ((>>) g)
 
 (*
@@ -629,7 +629,7 @@ dot_gen op1 op1:
 
 
 (* ------------------------------------------------------------------------
-   2次元 
+   2次元
 *)
 type d2 = int * int
 
@@ -641,7 +641,7 @@ let mm1 = Arr ((1,1), function
   | (1,1) -> 4
  )
 
-let rho2 : d2 -> (d1,'a) arr -> (d2,'a) arr 
+let rho2 : d2 -> (d1,'a) arr -> (d2,'a) arr
  (* まず、自分で *)
  (*hide*)
  = fun (nr,nc) (Arr (upb,xf)) ->
@@ -665,13 +665,13 @@ let _ = iota 6 |> rho2 (2,3) |> pr_arr2
 
 (* transpose *)
 (*hide*)
-let transpose : (d2,'a) arr -> (d2,'a) arr 
+let transpose : (d2,'a) arr -> (d2,'a) arr
     = function Arr ((nr1,nc1),xf) ->
-      Arr ((nc1,nr1), fun (i,j) -> xf (j,i)) 
+      Arr ((nc1,nr1), fun (i,j) -> xf (j,i))
 
-let transpose : ('d1*'d2,'a) arr -> ('d2*'d1,'a) arr 
+let transpose : ('d1*'d2,'a) arr -> ('d2*'d1,'a) arr
     = function Arr ((nr1,nc1),xf) ->
-      Arr ((nc1,nr1), fun (i,j) -> xf (j,i)) 
+      Arr ((nc1,nr1), fun (i,j) -> xf (j,i))
 (*/hide*)
 
 let m1 = iota 6 |> rho2 (2,3)
@@ -685,10 +685,10 @@ let _ = m1 |> transpose |> transpose |> pr_arr2
 let _ = m1 = (m1 |> transpose |> transpose)
 *)
 
-(* 宿題: 
-diag : (d2,'a) arr -> (d1,'a) arr 
+(* 宿題:
+diag : (d2,'a) arr -> (d1,'a) arr
 *)
-let diag : (d2,'a) arr -> (d1,'a) arr 
+let diag : (d2,'a) arr -> (d1,'a) arr
 	= function Arr ((r,c), xf) ->
 	  Arr (min r c, fun i -> xf (i,i) )
 
@@ -767,14 +767,14 @@ let addm : (d2,int) arr -> (d2,int) arr -> (d2,int) arr =
 addm m1 (iota 6);;
 *)
 
-let zip_with : ('a -> 'b -> 'c) -> 
+let zip_with : ('a -> 'b -> 'c) ->
            (int,'a) arr -> (int,'b) arr -> (int,'c) arr
     = fun f (Arr (upbx,xf)) (Arr (upby,yf)) ->
       assert (upbx = upby);
       Arr(upbx, fork f xf yf)
 
 
-let zip_with : ('a -> 'b -> 'c) -> 
+let zip_with : ('a -> 'b -> 'c) ->
  ('bounds,'a) arr -> ('bounds,'b) arr -> ('bounds,'c) arr
   = fun f (Arr (upbx,xf)) (Arr (upby,yf)) ->
       assert (upbx = upby);
@@ -796,11 +796,11 @@ let _ = zip_with (+) m1 (m1 |> map succ) |> pr_arr2
 (*hide*)
 (* まず、数学的に考えよう *)
 (* A=B*Cなら、a_ij = ? そして、dotを用いて、どうなる *)
-(* a_ij = B[i;*] \dot C[*;j] = B[i;*] \dot C^T[j;*]  
+(* a_ij = B[i;*] \dot C[*;j] = B[i;*] \dot C^T[j;*]
    B[i;*]の表記について
 *)
 
-let row : (d2,'a) arr -> int -> (d1,'a) arr 
+let row : (d2,'a) arr -> int -> (d1,'a) arr
     = function Arr ((nr1,nc1),xf) -> fun i ->
       Arr (nc1,fun j -> xf (i,j))
 
@@ -815,21 +815,21 @@ let to_rows : ('d1*'d2,'a) arr -> ('d1,('d2,'a)arr) arr
 (* curryと関係？ *)
 (* 以前のpr_arr2をみよう？ 思い出す？ *)
 
-let matmul : (d2,int) arr -> (d2,int) arr -> (d2,int) arr 
-    = function Arr ((nr1,nc1), xf1) as m1 -> 
-      function Arr ((nr2,nc2), xf2) as m2 -> 
+let matmul : (d2,int) arr -> (d2,int) arr -> (d2,int) arr
+    = function Arr ((nr1,nc1), xf1) as m1 ->
+      function Arr ((nr2,nc2), xf2) as m2 ->
       assert (nc1 = nr2);
       Arr ((nr1,nc2), fun (i,j) -> dot (row m1 i) (row (transpose m2) j))
 
 (* forkが見えるの？ *)
 
-let matmul : (d2,int) arr -> (d2,int) arr -> (d2,int) arr 
-    = function Arr ((nr1,nc1), xf1) as m1 -> 
-      function Arr ((nr2,nc2), xf2) as m2 -> 
+let matmul : (d2,int) arr -> (d2,int) arr -> (d2,int) arr
+    = function Arr ((nr1,nc1), xf1) as m1 ->
+      function Arr ((nr2,nc2), xf2) as m2 ->
       assert (nc1 = nr2);
-      Arr ((nr1,nc2),  
-        fork dot 
-             (fst >> row m1) 
+      Arr ((nr1,nc2),
+        fork dot
+             (fst >> row m1)
              (snd >> row (transpose m2)))
 
 (*
@@ -852,17 +852,17 @@ let _ = matmul m1 (transpose m1) |> pr_arr2
    matrixとmatrixかけ算: +.*
  *)
 (*hide*)
-let matmul_gen : ('a -> 'a -> 'a) -> ('a -> 'a -> 'a) -> 
-  (d2,'a) arr -> (d2,'a) arr -> (d2,'a) arr 
+let matmul_gen : ('a -> 'a -> 'a) -> ('a -> 'a -> 'a) ->
+  (d2,'a) arr -> (d2,'a) arr -> (d2,'a) arr
     = fun f g ->
-      function Arr ((nr1,nc1), _) as m1 -> 
-      function Arr ((nr2,nc2), _) as m2 -> 
+      function Arr ((nr1,nc1), _) as m1 ->
+      function Arr ((nr2,nc2), _) as m2 ->
       assert (nc1 = nr2);
-      Arr ((nr1,nc2), fun (i,j) -> 
+      Arr ((nr1,nc2), fun (i,j) ->
         dot_gen f g (row m1 i) (row (transpose m2) j))
 (*/hide*)
 
-(* 応用: 1ー全ての最小距離 
+(* 応用: 1ー全ての最小距離
 d(0,1) = 10, d(1,2)=20, d(2,3)=15, d(0,3)=5
 *)
 
@@ -876,7 +876,7 @@ let append : (d1,'a) arr -> (d1,'a) arr -> (d1,'a) arr
 let _ = append (iota 3) (iota 4) |> pr_arr1
 
 (* 各要素の間にある値を入れる *)
-let intercalate : 'a -> (d1,'a) arr -> (d1,'a) arr 
+let intercalate : 'a -> (d1,'a) arr -> (d1,'a) arr
     = fun x -> function Arr (upb1,xf1) ->
       Arr (upb1*2, fun i -> if i mod 2 = 0 then xf1 (i / 2) else x)
 
@@ -886,7 +886,7 @@ let _ = iota 3 |> intercalate 10 |> pr_arr1
 let _ = iota 4 |> intercalate 10 |> pr_arr1
 
 (* mapのような副作用をやる関数 *)
-let iter : ('a -> unit) -> ('s,'a) arr -> unit 
+let iter : ('a -> unit) -> ('s,'a) arr -> unit
     = fun f -> function Arr (upb,xf) ->
       for i = 0 to upb do xf i |> f done
 
@@ -918,7 +918,7 @@ let _ = pr_arr2 m1
 let _ = m1 |> to_rows |> map (reduce max) |> reduce max
 
 (* 最大と最小の要素、同時に *)
-let minmax : 'a * 'a -> 'a * 'a -> 'a * 'a = 
+let minmax : 'a * 'a -> 'a * 'a -> 'a * 'a =
   fun (x1,y1) (x2,y2) -> (min x1 x2, max y1 y2)
 
 let pair_dup : 'a -> 'a * 'a = fun x -> (x,x)
@@ -936,7 +936,7 @@ let get : ('bounds, 'a) arr -> 'bounds -> 'a
 
 (* materialize: vectorとして、tileとして、など *)
 
-let materialize2 : 'a -> (d2,'a) arr -> (d2,'a) arr 
+let materialize2 : 'a -> (d2,'a) arr -> (d2,'a) arr
  = fun iv -> function Arr ((upr,upc),xf) ->
    let arr = Array.make ((upr+1) * (upc+1)) iv in
    for i=0 to upr do
