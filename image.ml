@@ -59,7 +59,7 @@ let read_pgm : string -> (d2,int) arr =
           failwith ("Could not find the single terminating whitespace " ^
                     "at the end of the header");
         if maxgray > 255 || maxgray <= 0 then
-          Printf.kprintf failwith "maxgray %d is odd or unsupported"
+          Printf.ksprintf failwith "maxgray %d is odd or unsupported"
                       maxgray;
         alloc ncols nrows
   in
@@ -80,7 +80,7 @@ let read_pgm : string -> (d2,int) arr =
     let r = try read_data cin (allocate cin) with e -> close_in cin; raise e in
     close_in cin; r
 
-let takao = read_pgm "takaosan.pgm"
+let takao () = read_pgm "takaosan.pgm"
 
 (*
 let takao_small = takao |> scale_nn 0.25
