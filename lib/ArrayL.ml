@@ -179,9 +179,9 @@ let rho : ('bounds, 'a) arr -> 'bounds
 let get : ('bounds, 'a) arr -> 'bounds -> 'a
     = function Arr (b, xf) -> fun i -> xf i
 
-let materialize2 : 'a -> (d2,'a) arr -> (d2,'a) arr
- = fun iv -> function Arr ((upr,upc),xf) ->
-   let arr = Array.make ((upr+1) * (upc+1)) iv in
+let materialize2 : (d2,'a) arr -> (d2,'a) arr
+ = function Arr ((upr,upc),xf) ->
+   let arr = Array.make ((upr+1) * (upc+1)) (xf (0,0)) in
    for i=0 to upr do
      for j=0 to upc do
        arr.(i*(upc+1) + j) <- xf (i,j)
